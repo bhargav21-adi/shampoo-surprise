@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>A Little Surprise for Shampoo 💗</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;1,600&family=Quicksand:wght@400;500;600;700&family=Caveat:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --blush: #fff2f5;
+    --cream: #fffaf6;
+    --rose: #e35d78;
+    --deep-rose: #c23f5c;
+    --mauve: #c98aa3;
+    --gold: #d9a86c;
+    --plum: #3d2436;
+    --plum-soft: #6e4a5c;
+  }
+
+  *{ margin:0; padding:0; box-sizing:border-box; }
+  html{ scroll-behavior:smooth; }
+
+  body{
+    background: var(--blush);
+    color: var(--plum);
+    font-family: 'Quicksand', sans-serif;
+    overflow-x:hidden;
+    position:relative;
+  }
+
+  h1,h2,h3{ font-family:'Playfair Display', serif; }
+  .script{ font-family:'Caveat', cursive; }
+
+  /* =========================================================
+     LOCK SCREEN
+  ========================================================= */
+  #lock-screen{
+    position:fixed;
+    inset:0;
+    z-index:100;
+    background: radial-gradient(circle at 50% 30%, #ffe3ea 0%, #fbd3dd 55%, #f6c1cf 100%);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    padding: 20px;
+    transition: transform 1s cubic-bezier(.7,0,.2,1), opacity .8s ease;
+    /* FIX: allow this box to scroll internally when content (like the floating
+       photos + form) is taller than the viewport */
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+
+  #lock-screen.unlocked{
+    transform: translateY(-100%);
+    opacity: 0;
+    pointer-events:none;
+  }
+
+  .lock-heart{
+    font-size: 2.6rem;
+    margin-bottom: 6px;
+    animation: heartbeat 1.8s ease-in-out infinite;
+  }
+
+  @keyframes heartbeat{
+    0%,100%{ transform: scale(1); }
+    25%{ transform: scale(1.15); }
+    40%{ transform: scale(0.95); }
+  }
+
+  #lock-screen h1{
+    font-size: clamp(1.8rem, 6vw, 2.6rem);
+    color: var(--deep-rose);
+    margin-bottom: 8px;
+  }
+
+  #lock-screen p.sub{
+    color: var(--plum-soft);
+    margin-bottom: 30px;
+    font-size: 1rem;
+    max-width: 380px;
+  }
+
+  .lock-form{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap: 14px;
+  }
+
+  #password-input{
+    font-family:'Quicksand', sans-serif;
+    font-size: 1.3rem;
+    letter-spacing: .3em;
+    text-align:center;
+    padding: 14px 20px;
+    border-radius: 30px;
+    border: 2px solid #f2b9c8;
+    background: white;
+    color: var(--plum);
+    width: 240px;
+    outline:none;
+    transition: border-color .2s ease, transform .15s ease;
+  }
+  #password-input:focus{ border-color: var(--rose); }
+  #password-input.shake{ animation: shake .5s ease; border-color:#d9534f; }
+
+  @keyframes shake{
+    0%,100%{ transform: translateX(0); }
+    20%{ transform: translateX(-10px); }
+    40%{ transform: translateX(10px); }
+    60%{ transform: translateX(-6px); }
+    80%{ transform: translateX(6px); }
+  }
+
+  #unlock-btn{
+    background: var(--rose);
+    color:white;
+    border:none;
+    padding: 13px 34px;
+    border-radius: 30px;
+    font-family:'Quicksand', sans-serif;
+    font-weight:700;
+    font-size: 1rem;
+    cursor:pointer;
+    box-shadow: 0 10px 25px rgba(194,63,92,.3);
+    transition: transform .2s ease, background .2s ease;
+  }
+  #unlock-btn:hover{ background: var(--deep-rose); transform: translateY(-2px); }
+
+  #lock-error{
+    color: #b1425c;
+    font-size: .85rem;
+    height: 18px;
+    opacity:0;
+    transition: opacity .3s ease;
+  }
+  #lock-error.show{ opacity:1; }
+
+  .lock-hint{
+    margin-top: 18px;
+    font-size: .8rem;
+    color: var(--mauve);
+  }
+
+  /* floating hearts on lock screen */
+  .float-heart{
+    position:absolute;
+    bottom:-40px;
+    font-size: 18px;
+    color: var(--rose);
+    opacity:.55;
+    pointer-events:none;
+    animation: floatUp linear infinite;
+  }
+  @keyframes floatUp{
+    to{ transform: translateY(-110vh) translateX(var(--dx,0)) rotate(360deg); opacity:0; }
+  }
+
+  /* floating decorative photos on the lock screen, styled as little polaroids */
+  .lock-photo{
+    position:absolute;
+    z-index: 1;
+    pointer-events:none;
+    background: #fff;
+    padding: 8px 8px 22px;
+    border-radius: 4px;
+    box-shadow: 0 15px 30px rgba(150,60,90,.28);
+  }
+  .lock-photo img{
+    display:block;
+    width:100%;
+    aspect-ratio: 4/5;
+    object-fit: cover;
+    border-radius: 2px;
+  }
+
+  /* confetti burst */
+  .confetti-piece{
+    position:fixed;
+    top:50%; left:50%;
+    width:8px; height:14px;
+    z-index: 200;
+    pointer-events:none;
+    border-radius:2px;
+  }
+
+  /* =========================================================
+     INTERFACE SWITCHER
+     Each top-level .interface is a separate "page". Only the
+     one with class "active" is shown; JS toggles between them.
+  ========================================================= */
+  .interface{
+    display:none;
+    width:100%;
+  }
+  .interface.active{
+    display:block;
+    animation: fadeUp .8s ease forwards;
+  }
+  @keyframes fadeUp{
+    from{ opacity:0; transform: translateY(24px); }
+    to{ opacity:1; transform: translateY(0); }
+  }
+
+  .continue-btn{
+    margin-top: 30px;
+    background: var(--rose);
+    color:white;
+    border:none;
+    padding: 13px 32px;
+    border-radius: 30px;
+    font-family:'Quicksand', sans-serif;
+    font-weight:700;
+    font-size: 1rem;
+    cursor:pointer;
+    box-shadow: 0 10px 25px rgba(194,63,92,.3);
+    transition: transform .2s ease, background .2s ease;
+  }
+  .continue-btn:hover{ background: var(--deep-rose); transform: translateY(-2px); }
+
+  /* =========================================================
+     MAIN CONTENT
+  ========================================================= */
+  #main-content{
+    width: 100%;
+  }
+
+  section{
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    padding: 70px 20px;
+    position:relative;
+  }
+
+  .eyebrow{
+    letter-spacing:.3em;
+    text-transform:uppercase;
+    font-size:.75rem;
+    color: var(--mauve);
+    font-weight:600;
+    margin-bottom:18px;
+  }
+
+  /* reveal-on-scroll */
+  .reveal-item{
+    opacity:0;
+    transform: translateY(40px);
+    transition: opacity .8s cubic-bezier(.2,.7,.3,1), transform .8s cubic-bezier(.2,.7,.3,1);
+  }
+  .reveal-item.in-view{
+    opacity:1;
+    transform: translateY(0);
+  }
+
+  /* ---- make a wish / cake ---- */
+  #cake{
+    background: radial-gradient(circle at 50% 10%, #ffe3ea 0%, var(--blush) 55%);
+    text-align:center;
+  }
+
+  .cake-instruction{
+    color: var(--plum-soft);
+    max-width: 380px;
+    font-size: 1rem;
+    margin-top: 6px;
+  }
+
+  .cake-scene{
+    position: relative;
+    width: 220px;
+    height: 210px;
+    margin: 34px auto 18px;
+  }
+
+  .candle{
+    width: 10px;
+    height: 44px;
+    background: linear-gradient(180deg, #fff8e6, #ffe0ac);
+    border-radius: 3px;
+    position: absolute;
+    left: 50%;
+    top: 20px;
+    transform: translateX(-50%);
+    z-index: 3;
+    box-shadow: inset -2px 0 3px rgba(180,120,40,.25);
+  }
+
+  .flame{
+    position: absolute;
+    left: 50%;
+    top: -19px;
+    width: 15px;
+    height: 24px;
+    transform: translateX(-50%);
+    transform-origin: bottom center;
+    background: radial-gradient(circle at 50% 70%, #fff6c8 0%, #ffb648 45%, #ff7a45 78%, transparent 100%);
+    border-radius: 50% 50% 50% 50% / 65% 65% 35% 35%;
+    animation: flicker 1.3s ease-in-out infinite;
+    z-index: 4;
+  }
+  @keyframes flicker{
+    0%,100%{ transform: translateX(-50%) scale(1) rotate(-3deg); }
+    50%{ transform: translateX(-50%) scale(1.1) rotate(3deg); }
+  }
+  .flame.out{
+    animation: extinguish .45s ease forwards;
+  }
+  @keyframes extinguish{
+    to{ transform: translateX(-50%) scale(0); opacity: 0; }
+  }
+
+  .glow{
+    position:absolute;
+    left:50%; top:-22px;
+    width: 46px; height: 46px;
+    background: radial-gradient(circle, rgba(255,200,100,.5) 0%, transparent 70%);
+    transform: translateX(-50%);
+    z-index: 3;
+    transition: opacity .4s ease;
+  }
+  .glow.out{ opacity: 0; }
+
+  .smoke-puff{
+    position:absolute;
+    left:50%; top:-19px;
+    width:7px; height:7px;
+    background: rgba(130,130,130,.45);
+    border-radius:50%;
+    transform: translateX(-50%);
+    opacity:0;
+    z-index: 4;
+    pointer-events:none;
+  }
+  .smoke-puff.rise{
+    animation: smokeRise 1.7s ease-out forwards;
+  }
+  @keyframes smokeRise{
+    0%{ opacity:.55; transform: translate(-50%,0) scale(1); }
+    100%{ opacity:0; transform: translate(-50%,-70px) scale(2.6); }
+  }
+
+  .cake-body{
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 200px;
+  }
+
+  .cake-tier-top{
+    width: 120px;
+    height: 46px;
+    margin: 0 auto;
+    background: linear-gradient(160deg, #ffd7e3, #ffbfd4);
+    border-radius: 10px 10px 4px 4px;
+    position: relative;
+  }
+  .cake-tier-top::before{
+    content:'';
+    position:absolute;
+    top:-8px; left:-4px; right:-4px;
+    height: 16px;
+    background: #fff;
+    border-radius: 50% 50% 40% 40% / 70% 70% 30% 30%;
+  }
+
+  .cake-tier-bottom{
+    width: 190px;
+    height: 68px;
+    margin: -4px auto 0;
+    background: linear-gradient(160deg, #ffeaf0, #ffd3e0);
+    border-radius: 10px;
+    position: relative;
+  }
+  .cake-tier-bottom::before{
+    content:'';
+    position:absolute;
+    top:-8px; left:-4px; right:-4px;
+    height: 16px;
+    background: #fffaf7;
+    border-radius: 50% 50% 40% 40% / 70% 70% 30% 30%;
+  }
+
+  .sprinkle{
+    position:absolute;
+    width:5px; height:9px;
+    border-radius: 2px;
+  }
+
+  #wish-made{
+    margin-top: 26px;
+    opacity: 0;
+    max-height: 0;
+    overflow: hidden;
+    transition: opacity .6s ease;
+  }
+  #wish-made.show{
+    opacity: 1;
+    max-height: 200px;
+  }
+  #wish-made .script{
+    font-size: 1.7rem;
+    color: var(--deep-rose);
+  }
+
+  #blow-btn{
+    margin-top: 8px;
+    background: var(--rose);
+    color:white;
+    border:none;
+    padding: 13px 30px;
+    border-radius: 30px;
+    font-family:'Quicksand', sans-serif;
+    font-weight:700;
+    font-size: 1rem;
+    cursor:pointer;
+    box-shadow: 0 10px 25px rgba(194,63,92,.3);
+    transition: transform .2s ease, background .2s ease, opacity .3s ease;
+  }
+  #blow-btn:hover{ background: var(--deep-rose); transform: translateY(-2px); }
+  #blow-btn:disabled{ opacity:.4; cursor:default; transform:none; }
+
+  /* ---- welcome ---- */
+  #welcome{
+    text-align:center;
+    background: radial-gradient(circle at 50% 15%, #ffe3ea 0%, var(--blush) 60%);
+  }
+  .name-display{
+    font-size: clamp(2.6rem, 8vw, 4.6rem);
+    color: var(--deep-rose);
+    margin: 6px 0 16px;
+  }
+  #welcome p{
+    color: var(--plum-soft);
+    max-width: 480px;
+    font-size: 1.05rem;
+    line-height:1.8;
+  }
+
+  /* floating decorative photos behind the welcome text */
+  .welcome-photo{
+    position:absolute;
+    z-index: 1;
+    background: #fff;
+    padding: 7px 7px 20px;
+    border-radius: 4px;
+    box-shadow: 0 14px 30px rgba(150,60,90,.22);
+    opacity: .9;
+    aspect-ratio: 4/5;
+    object-fit: cover;
+  }
+  #welcome .eyebrow,
+  #welcome .name-display,
+  #welcome p,
+  #welcome .scroll-cue{
+    position: relative;
+    z-index: 2;
+  }
+  @media (max-width: 640px){
+    .welcome-photo{ display:none; }
+  }
+  .scroll-cue{
+    margin-top: 40px;
+    font-size: 1.6rem;
+    color: var(--rose);
+    animation: bob 1.6s ease-in-out infinite;
+  }
+  @keyframes bob{
+    0%,100%{ transform: translateY(0); }
+    50%{ transform: translateY(10px); }
+  }
+
+  /* ---- gallery ---- */
+  #gallery{ background: var(--cream); }
+  .gallery-grid{
+    display:grid;
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    gap: 30px;
+    max-width: 940px;
+    margin-top: 44px;
+    width:100%;
+  }
+  .polaroid{
+    background: white;
+    padding: 14px 14px 42px;
+    box-shadow: 0 15px 30px rgba(150,60,90,.14);
+    transform: rotate(var(--r,-3deg));
+    transition: transform .35s ease, box-shadow .35s ease;
+    position:relative;
+  }
+  .polaroid:nth-child(2n){ --r: 3deg; }
+  .polaroid:nth-child(3n){ --r: -1.5deg; }
+  .polaroid:nth-child(4n){ --r: 2deg; }
+  .polaroid:hover{ transform: rotate(0deg) scale(1.05) translateY(-6px); box-shadow: 0 25px 45px rgba(150,60,90,.22); }
+
+  .photo-slot{
+    width:100%;
+    aspect-ratio: 1;
+    background: linear-gradient(150deg, #ffe0e8, #f6c6d3);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color: var(--rose);
+    font-size: 2rem;
+    overflow:hidden;
+  }
+  .photo-slot img{ width:100%; height:100%; object-fit:cover; }
+
+  .polaroid figcaption{
+    position:absolute;
+    bottom: 10px; left: 0; right:0;
+    text-align:center;
+    font-family:'Caveat', cursive;
+    font-size: 1.15rem;
+    color: var(--plum-soft);
+  }
+
+  /* ---- videos / songs ---- */
+  #songs{ background: var(--blush); }
+  .songs-intro{
+    max-width: 560px;
+    text-align:center;
+    color: var(--plum-soft);
+    margin-bottom: 10px;
+    font-size: 1.05rem;
+    line-height:1.8;
+  }
+  .video-grid{
+    display:grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 34px;
+    max-width: 960px;
+    margin-top: 40px;
+    width:100%;
+  }
+  .video-card{
+    background: white;
+    border-radius: 22px;
+    padding: 18px;
+    box-shadow: 0 18px 40px rgba(190,70,100,.13);
+  }
+  .video-frame{
+    width:100%;
+    aspect-ratio: 16/9;
+    border-radius: 14px;
+    background: linear-gradient(150deg, #3d2436, #6e4a5c);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    color: #ffd9e2;
+    gap: 8px;
+    overflow:hidden;
+  }
+  .video-frame video{ width:100%; height:100%; object-fit:cover; border-radius:14px; }
+  .video-frame .play-icon{ font-size: 2.2rem; }
+  .video-frame .placeholder-label{ font-size: .85rem; letter-spacing:.1em; text-transform:uppercase; color:#e8b9c8; }
+
+  .video-title{
+    font-family:'Caveat', cursive;
+    font-size: 1.4rem;
+    color: var(--deep-rose);
+    margin-top: 14px;
+    text-align:center;
+  }
+
+  /* ---- closing ---- */
+  #closing{
+    background: var(--plum);
+    color: #f6dde4;
+    text-align:center;
+  }
+  #closing .script{
+    font-size: 2.4rem;
+    color: var(--gold);
+    display:block;
+    margin-bottom: 14px;
+  }
+  #closing p{
+    max-width: 460px;
+    line-height:1.8;
+    color: #e9c7d3;
+  }
+
+  /* hide the floating lock-screen photos on small screens so they
+     don't crowd the password form on phones */
+  @media (max-width: 640px){
+    .lock-photo{ display:none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ LOCK SCREEN ============ -->
+<div id="lock-screen">
+
+  <!-- Floating decorative photos, framed like little polaroids in each corner -->
+  <div class="lock-photo" style="left: 4%; top: 8%; width: 150px; transform: rotate(-6deg);">
+    <img src="photo-childhood1.jpeg" alt="">
+  </div>
+  <div class="lock-photo" style="right: 4%; top: 8%; width: 150px; transform: rotate(5deg);">
+    <img src="photo-childhood2.jpeg" alt="">
+  </div>
+  <div class="lock-photo" style="left: 4%; bottom: 6%; width: 150px; transform: rotate(4deg);">
+    <img src="photo-family.jpeg" alt="">
+  </div>
+  <div class="lock-photo" style="right: 4%; bottom: 6%; width: 150px; transform: rotate(-5deg);">
+    <img src="photo-recent.jpeg" alt="">
+  </div>
+
+  <div class="lock-heart">💌</div>
+  <h1>A little something<br>just for you</h1>
+  <p class="sub">You'll need the password to open this one, Shampoo.</p>
+  <div class="lock-form">
+    <input type="password" id="password-input" placeholder="••••••••" autocomplete="off" maxlength="20">
+    <div id="lock-error">that's not quite it, try again 💗</div>
+    <button id="unlock-btn" onclick="tryUnlock()">Unlock</button>
+  </div>
+  <div class="lock-hint">hint: A date that matters to us</div>
+</div>
+
+<!-- ============ MAIN CONTENT ============ -->
+<div id="main-content">
+
+  <!-- ============ INTERFACE 2: MAKE A WISH ============ -->
+  <div class="interface" id="interface-wish">
+  <section id="cake">
+    <div class="eyebrow reveal-item in-view">before we begin</div>
+    <h2 class="script reveal-item in-view" style="font-size: 2.4rem; color: var(--deep-rose);">Make a Wish</h2>
+    <p class="cake-instruction reveal-item in-view">Close your eyes, make a wish, then blow out the candle.</p>
+
+    <div class="cake-scene">
+      <div class="glow" id="candle-glow"></div>
+      <div class="smoke-puff" id="candle-smoke"></div>
+      <div class="flame" id="candle-flame"></div>
+      <div class="candle"></div>
+      <div class="cake-body">
+        <div class="cake-tier-top">
+          <div class="sprinkle" style="background:#e35d78; left:20px; top:14px; transform:rotate(20deg);"></div>
+          <div class="sprinkle" style="background:#d9a86c; left:50px; top:20px; transform:rotate(-15deg);"></div>
+          <div class="sprinkle" style="background:#c98aa3; left:80px; top:12px; transform:rotate(10deg);"></div>
+        </div>
+        <div class="cake-tier-bottom">
+          <div class="sprinkle" style="background:#e35d78; left:30px; top:16px; transform:rotate(-10deg);"></div>
+          <div class="sprinkle" style="background:#d9a86c; left:70px; top:22px; transform:rotate(15deg);"></div>
+          <div class="sprinkle" style="background:#c98aa3; left:110px; top:14px; transform:rotate(-20deg);"></div>
+          <div class="sprinkle" style="background:#e35d78; left:150px; top:24px; transform:rotate(8deg);"></div>
+        </div>
+      </div>
+    </div>
+
+    <button id="blow-btn" onclick="blowCandle()">🕯️ Blow the candle</button>
+
+    <div id="wish-made">
+      <div class="script">Wish made 💫</div>
+      <p style="color: var(--plum-soft); font-size: .95rem;">Whatever you wished for, I hope it finds you.</p>
+    </div>
+
+    <button class="continue-btn" onclick="goToInterface('interface-birthday')">Continue →</button>
+  </section>
+  </div>
+
+  <!-- ============ INTERFACE 3: BIRTHDAY MESSAGE + PHOTOS ============ -->
+  <div class="interface" id="interface-birthday">
+  <!-- ---- welcome ---- -->
+  <section id="welcome">
+    <img class="welcome-photo" src="welcome-photo1.jpeg" alt="" style="left: 4%; top: 10%; width: 150px; transform: rotate(-6deg);">
+    <img class="welcome-photo" src="welcome-photo2.jpeg" alt="" style="right: 4%; top: 12%; width: 150px; transform: rotate(5deg);">
+    <img class="welcome-photo" src="welcome-photo3.jpeg" alt="" style="left: 5%; bottom: 8%; width: 150px; transform: rotate(4deg);">
+    <img class="welcome-photo" src="welcome-photo4.jpeg" alt="" style="right: 5%; bottom: 10%; width: 150px; transform: rotate(-5deg);">
+    <div class="eyebrow reveal-item in-view">you made it in 💗</div>
+    <h1 class="name-display script reveal-item in-view">Helloo Birthday girll !!</h1>
+    <p class="reveal-item in-view">
+      Wish you a very very happie happie happie birthday shampoooo.
+      I genuinely wished to celebrate your birthday with you.
+      Seriously, I couldn't believe that u are 20 now for me you
+      are that 8th class cute girl with babyhair shambhavii.
+      And this year is really going to be yours for sure, Rock it!
+    </p>
+    <div class="scroll-cue reveal-item in-view">↓</div>
+  </section>
+
+  <!-- ---- gallery ---- -->
+  <!-- EDIT ME: replace each .photo-slot's inner content with
+       <img src="your-photo.jpg" alt="..."> to add real photos.
+       Keep the photo files in the same folder as this html file. -->
+  <section id="gallery">
+    <div class="eyebrow reveal-item">little memories</div>
+    <h2 class="reveal-item" style="font-size:2rem; color:var(--deep-rose);">us, in photos</h2>
+    <div class="gallery-grid">
+      <figure class="polaroid reveal-item"><div class="photo-slot"><img src="gallery02.jpeg" alt=""></div><figcaption></figcaption></figure>
+      <figure class="polaroid reveal-item"><div class="photo-slot"><img src="gallery04.jpeg" alt=""></div><figcaption></figcaption></figure>
+      <figure class="polaroid reveal-item"><div class="photo-slot"><img src="gallery05.jpeg" alt=""></div><figcaption></figcaption></figure>
+      <figure class="polaroid reveal-item"><div class="photo-slot"><img src="gallery06.jpeg" alt=""></div><figcaption></figcaption></figure>
+      <figure class="polaroid reveal-item"><div class="photo-slot"><img src="gallery07.jpeg" alt=""></div><figcaption></figcaption></figure>
+      <figure class="polaroid reveal-item"><div class="photo-slot"><img src="gallery08.jpeg" alt=""></div><figcaption></figcaption></figure>
+      <figure class="polaroid reveal-item"><div class="photo-slot"><img src="gallery10.jpeg" alt=""></div><figcaption></figcaption></figure>
+      <figure class="polaroid reveal-item"><div class="photo-slot"><img src="gallery11.jpeg" alt=""></div><figcaption></figcaption></figure>
+      <figure class="polaroid reveal-item"><div class="photo-slot"><img src="gallery12.jpeg" alt=""></div><figcaption></figcaption></figure>
+      <figure class="polaroid reveal-item"><div class="photo-slot"><img src="gallery13.jpeg" alt=""></div><figcaption></figcaption></figure>
+      <figure class="polaroid reveal-item"><div class="photo-slot"><img src="gallery14.jpeg" alt=""></div><figcaption></figcaption></figure>
+      <figure class="polaroid reveal-item"><div class="photo-slot"><img src="gallery15.jpeg" alt=""></div><figcaption></figcaption></figure>
+      <figure class="polaroid reveal-item"><div class="photo-slot"><img src="gallery16.jpeg" alt=""></div><figcaption></figcaption></figure>
+      <figure class="polaroid reveal-item"><div class="photo-slot"><img src="gallery17.jpeg" alt=""></div><figcaption></figcaption></figure>
+      <figure class="polaroid reveal-item"><div class="photo-slot"><img src="gallery18.jpeg" alt=""></div><figcaption></figcaption></figure>
+      <figure class="polaroid reveal-item"><div class="photo-slot"><img src="gallery19.jpeg" alt=""></div><figcaption></figcaption></figure>
+    </div>
+    <div style="text-align:center;">
+      <button class="continue-btn" onclick="goToInterface('interface-videos')">Continue →</button>
+    </div>
+  </section>
+  </div>
+
+  <!-- ============ INTERFACE 4: VIDEO CLIPS ============ -->
+  <div class="interface" id="interface-videos">
+  <!-- ---- songs / video clips ---- -->
+  <!-- EDIT ME: replace each .video-frame's inner content with
+       <video controls src="your-clip.mp4"></video> to add your real clips -->
+  <section id="songs">
+    <div class="eyebrow reveal-item">for your ears only</div>
+    <h2 class="reveal-item" style="font-size:2rem; color:var(--deep-rose); margin-bottom:14px;">songs I sang for you</h2>
+    <p class="songs-intro reveal-item">A few clips are coming soon — this space is reserved for them.</p>
+    <div class="video-grid">
+      <div class="video-card reveal-item">
+        <div class="video-frame">
+          <div class="play-icon">🎬</div>
+          <div class="placeholder-label">clip coming soon</div>
+        </div>
+        <div class="video-title">song one 🎶</div>
+      </div>
+      <div class="video-card reveal-item">
+        <div class="video-frame">
+          <div class="play-icon">🎬</div>
+          <div class="placeholder-label">clip coming soon</div>
+        </div>
+        <div class="video-title">song two 🎶</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ---- closing ---- -->
+  <section id="closing">
+    <span class="script reveal-item">Happy Birthday, Shampoo</span>
+    <p class="reveal-item">This little page will keep growing — more photos, more songs, more us. Consider this just the beginning. 🎈</p>
+  </section>
+  </div>
+
+</div>
+
+<script>
+  const CORRECT_PASSWORD = "01052026";
+
+  // floating hearts on lock screen
+  const lockScreen = document.getElementById('lock-screen');
+  for(let i=0;i<14;i++){
+    const h = document.createElement('div');
+    h.className = 'float-heart';
+    h.textContent = '💗';
+    h.style.left = Math.random()*100 + '%';
+    h.style.setProperty('--dx', (Math.random()*80-40) + 'px');
+    h.style.animationDuration = (6 + Math.random()*8) + 's';
+    h.style.animationDelay = (Math.random()*8) + 's';
+    h.style.fontSize = (14 + Math.random()*12) + 'px';
+    lockScreen.appendChild(h);
+  }
+
+  function tryUnlock(){
+    const input = document.getElementById('password-input');
+    const error = document.getElementById('lock-error');
+    if(input.value.trim() === CORRECT_PASSWORD){
+      launchConfetti();
+      document.getElementById('lock-screen').classList.add('unlocked');
+      document.getElementById('interface-wish').classList.add('active');
+      setTimeout(() => {
+        document.getElementById('lock-screen').style.display = 'none';
+      }, 1000);
+    } else {
+      input.classList.remove('shake');
+      void input.offsetWidth;
+      input.classList.add('shake');
+      error.classList.add('show');
+      setTimeout(() => error.classList.remove('show'), 1800);
+    }
+  }
+
+  document.getElementById('password-input').addEventListener('keydown', e => {
+    if(e.key === 'Enter') tryUnlock();
+  });
+
+  // ---------- interface navigation ----------
+  // Switches between the 4 full-screen "pages": lock (handled separately),
+  // wish, birthday message + photos, and video clips.
+  function goToInterface(targetId){
+    document.querySelectorAll('.interface').forEach(el => {
+      el.classList.remove('active');
+    });
+    const target = document.getElementById(targetId);
+    target.classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }
+
+  // ---------- make a wish / candle blow ----------
+  function blowCandle(){
+    const flame = document.getElementById('candle-flame');
+    const glow = document.getElementById('candle-glow');
+    const smoke = document.getElementById('candle-smoke');
+    const btn = document.getElementById('blow-btn');
+    const wishMsg = document.getElementById('wish-made');
+
+    if(btn.disabled) return;
+    btn.disabled = true;
+
+    flame.classList.add('out');
+    glow.classList.add('out');
+    smoke.classList.add('rise');
+
+    launchConfetti();
+
+    setTimeout(() => {
+      wishMsg.classList.add('show');
+    }, 500);
+  }
+
+  function launchConfetti(){
+    const colors = ['#e35d78','#f4b7c6','#d9a86c','#ffffff','#c98aa3'];
+    for(let i=0;i<40;i++){
+      const c = document.createElement('div');
+      c.className = 'confetti-piece';
+      c.style.background = colors[Math.floor(Math.random()*colors.length)];
+      const angle = Math.random()*2*Math.PI;
+      const distance = 150 + Math.random()*300;
+      const dx = Math.cos(angle)*distance;
+      const dy = Math.sin(angle)*distance;
+      c.style.transition = `transform ${0.8+Math.random()*0.6}s cubic-bezier(.2,.7,.3,1), opacity 1s ease`;
+      document.body.appendChild(c);
+      requestAnimationFrame(() => {
+        c.style.transform = `translate(${dx}px, ${dy}px) rotate(${Math.random()*720}deg)`;
+        c.style.opacity = '0';
+      });
+      setTimeout(() => c.remove(), 1600);
+    }
+  }
+
+  // scroll reveal
+  const revealItems = document.querySelectorAll('.reveal-item');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if(entry.isIntersecting){
+        entry.target.classList.add('in-view');
+      }
+    });
+  }, { threshold: 0.15 });
+  revealItems.forEach(item => observer.observe(item));
+</script>
+
+</body>
+</html>
