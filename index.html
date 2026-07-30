@@ -22,19 +22,13 @@
   *{ margin:0; padding:0; box-sizing:border-box; }
   html{ scroll-behavior:smooth; }
 
-body {
-  /* A soft, warm pink and peach gradient */
-  background: linear-gradient(135deg, #ffd1ff, #ffb6c1, #fff0f5);
-  background-size: 200% 200%;
-  animation: gentleFlow 12s ease infinite;
-}
-
-/* This makes the gradient slowly shift back and forth */
-@keyframes gentleFlow {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
+  body{
+    background: var(--blush);
+    color: var(--plum);
+    font-family: 'Quicksand', sans-serif;
+    overflow-x:hidden;
+    position:relative;
+  }
 
   h1,h2,h3{ font-family:'Playfair Display', serif; }
   .script{ font-family:'Caveat', cursive; }
