@@ -592,8 +592,12 @@
 
   /* hide the floating lock-screen photos on small screens so they
      don't crowd the password form on phones */
-  @media (max-width: 640px){
-    .lock-photo{ display:none; }
+  @media (max-width: 768px){
+    .lock-photo{ 
+      display:block !important;          
+      width: 90px;
+      height: auto;
+      }
   }
 </style>
 </head>
