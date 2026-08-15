@@ -22,13 +22,21 @@
   *{ margin:0; padding:0; box-sizing:border-box; }
   html{ scroll-behavior:smooth; }
 
-  body{
-    background: var(--blush);
-    color: var(--plum);
-    font-family: 'Quicksand', sans-serif;
-    overflow-x:hidden;
-    position:relative;
-  }
+body {
+  height: 100vh;
+  margin: 0;
+  /* A soft, warm pink and peach gradient */
+  background: linear-gradient(135deg, #ffd1ff, #ffb6c1, #fff0f5);
+  background-size: 200% 200%;
+  animation: gentleFlow 12s ease infinite;
+}
+
+/* This makes the gradient slowly shift back and forth */
+@keyframes gentleFlow {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
 
   h1,h2,h3{ font-family:'Playfair Display', serif; }
   .script{ font-family:'Caveat', cursive; }
@@ -427,6 +435,139 @@
   }
   #blow-btn:hover{ background: var(--deep-rose); transform: translateY(-2px); }
   #blow-btn:disabled{ opacity:.4; cursor:default; transform:none; }
+  
+  /* ---- party sequence (lights / music / decorate / balloons / cake) ---- */
+  #interface-party{
+    position: relative;
+    min-height: 100vh;
+  }
+
+  .lights-overlay{
+    position: fixed;
+    inset: 0;
+    background: #0e0a0d;
+    z-index: 60;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    gap: 14px;
+    padding: 20px;
+    transition: opacity 1s ease;
+  }
+  .lights-overlay.off{
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .party-step{
+    display:none;
+    min-height:100vh;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    padding: 70px 20px;
+    position:relative;
+  }
+  .party-step.active{
+    display:flex;
+    animation: fadeUp .7s ease forwards;
+  }
+
+  .party-emoji{
+    font-size: 4rem;
+    margin: 26px 0;
+    animation: bob 2s ease-in-out infinite;
+  }
+
+  .banner-strip{
+    position: fixed;
+    top: 18px;
+    left: 0;
+    right: 0;
+    display:flex;
+    justify-content:center;
+    gap: 6px;
+    z-index: 30;
+    pointer-events:none;
+    flex-wrap: wrap;
+    padding: 0 10px;
+  }
+  .banner-flag{
+    background: var(--rose);
+    color: white;
+    font-family:'Playfair Display', serif;
+    font-weight:700;
+    font-size: 1rem;
+    width: 30px;
+    height: 34px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    clip-path: polygon(0 0, 100% 0, 100% 70%, 50% 100%, 0 70%);
+    opacity: 0;
+    transform: translateY(-30px);
+    transition: opacity .5s ease, transform .5s cubic-bezier(.3,1.4,.4,1);
+  }
+  .banner-flag.show{
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .banner-flag:nth-child(odd){ background: var(--gold); }
+  .banner-flag:nth-child(3n){ background: var(--mauve); }
+
+  .balloon-stage{
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 25;
+    overflow: hidden;
+  }
+  .balloon{
+    position: absolute;
+    bottom: -120px;
+    width: 46px;
+    opacity: 0;
+  }
+  .balloon.launch{
+    animation: balloonFly linear forwards;
+  }
+  .balloon-body{
+    width: 46px;
+    height: 58px;
+    border-radius: 50% 50% 48% 48% / 60% 60% 40% 40%;
+    background:
+      radial-gradient(circle at 32% 26%, rgba(255,255,255,.65) 0%, rgba(255,255,255,0) 42%),
+      linear-gradient(160deg, var(--b1), var(--b2));
+    box-shadow:
+      inset -7px -10px 14px rgba(0,0,0,.14),
+      inset 4px 6px 8px rgba(255,255,255,.25),
+      0 10px 18px rgba(80,30,50,.18);
+    position: relative;
+  }
+  .balloon-knot{
+    width: 7px;
+    height: 7px;
+    background: var(--b2);
+    margin: -2px auto 0;
+    clip-path: polygon(50% 100%, 0 0, 100% 0);
+  }
+  .balloon-string{
+    width: 1px;
+    height: 46px;
+    margin: 0 auto;
+    background: rgba(90,60,55,.4);
+  }
+  @keyframes balloonFly{
+    0%{   opacity: 1; transform: translate(0, 0) rotate(0deg); }
+    18%{  transform: translate(calc(var(--sway) * 0.35), -22vh) rotate(-5deg); }
+    38%{  transform: translate(calc(var(--sway) * -0.3),  -46vh) rotate(5deg); }
+    58%{  transform: translate(calc(var(--sway) * 0.4),  -70vh) rotate(-4deg); }
+    78%{  transform: translate(calc(var(--sway) * -0.15), -95vh) rotate(4deg); opacity: 1; }
+    100%{ transform: translate(var(--sway), -122vh) rotate(0deg); opacity: 0; }
+  }
 
   /* ---- welcome ---- */
   #welcome{
@@ -593,7 +734,11 @@
   /* hide the floating lock-screen photos on small screens so they
      don't crowd the password form on phones */
   @media (max-width: 768px){
-    .lock-photo{ display:none;}
+    .lock-photo{ 
+      display:block !important;
+      width: 90px;
+      height: auto;
+    }
   }
 </style>
 </head>
@@ -630,42 +775,84 @@
 <!-- ============ MAIN CONTENT ============ -->
 <div id="main-content">
 
-  <!-- ============ INTERFACE 2: MAKE A WISH ============ -->
-  <div class="interface" id="interface-wish">
-  <section id="cake">
-    <div class="eyebrow reveal-item in-view">before we begin</div>
-    <h2 class="script reveal-item in-view" style="font-size: 2.4rem; color: var(--deep-rose);">Make a Wish</h2>
-    <p class="cake-instruction reveal-item in-view">Close your eyes, make a wish, then blow out the candle.</p>
+  <!-- ============ INTERFACE 2: THE PARTY (lights, music, decorate, balloons, cake) ============ -->
+  <div class="interface" id="interface-party">
 
-    <div class="cake-scene">
-      <div class="glow" id="candle-glow"></div>
-      <div class="smoke-puff" id="candle-smoke"></div>
-      <div class="flame" id="candle-flame"></div>
-      <div class="candle"></div>
-      <div class="cake-body">
-        <div class="cake-tier-top">
-          <div class="sprinkle" style="background:#e35d78; left:20px; top:14px; transform:rotate(20deg);"></div>
-          <div class="sprinkle" style="background:#d9a86c; left:50px; top:20px; transform:rotate(-15deg);"></div>
-          <div class="sprinkle" style="background:#c98aa3; left:80px; top:12px; transform:rotate(10deg);"></div>
-        </div>
-        <div class="cake-tier-bottom">
-          <div class="sprinkle" style="background:#e35d78; left:30px; top:16px; transform:rotate(-10deg);"></div>
-          <div class="sprinkle" style="background:#d9a86c; left:70px; top:22px; transform:rotate(15deg);"></div>
-          <div class="sprinkle" style="background:#c98aa3; left:110px; top:14px; transform:rotate(-20deg);"></div>
-          <div class="sprinkle" style="background:#e35d78; left:150px; top:24px; transform:rotate(8deg);"></div>
+    <!-- lights-off overlay, shown first -->
+    <div class="lights-overlay" id="lights-overlay">
+      <div class="eyebrow" style="color:#ffc2d1;">let's get this started</div>
+      <h2 class="script" style="font-size:2.2rem; color:#fff;">It's a little dark in here...</h2>
+      <button class="continue-btn" onclick="turnLightsOn()">💡 Turn the lights on</button>
+    </div>
+
+    <!-- step 1: music -->
+    <section class="party-step active" id="step-music">
+      <div class="eyebrow">step one</div>
+      <h2 class="script" style="font-size:2.2rem; color:var(--deep-rose);">Play Some Music</h2>
+      <p class="cake-instruction">Every party needs a little tune.</p>
+      <div class="party-emoji" id="music-emoji">🎵</div>
+      <p id="music-lyric" style="color: var(--plum-soft); font-family:'Caveat', cursive; font-size:1.3rem; min-height: 1.6rem;"></p>
+      <button class="continue-btn" id="music-btn" onclick="playBirthdayTune()">Play Music</button>
+    </section>
+
+    <!-- step 2: decorate -->
+    <section class="party-step" id="step-decorate">
+      <div class="eyebrow">step two</div>
+      <h2 class="script" style="font-size:2.2rem; color:var(--deep-rose);">Time to Decorate</h2>
+      <p class="cake-instruction">Let's hang up something festive.</p>
+      <div class="party-emoji" id="decorate-emoji">🎀</div>
+      <button class="continue-btn" onclick="decorateParty()">Decorate</button>
+    </section>
+
+    <!-- step 3: balloons -->
+    <section class="party-step" id="step-balloons">
+      <div class="eyebrow">step three</div>
+      <h2 class="script" style="font-size:2.2rem; color:var(--deep-rose);">Send Up Some Balloons</h2>
+      <p class="cake-instruction">Fill the sky with a little colour.</p>
+      <div class="party-emoji" id="balloons-emoji">🎈</div>
+      <button class="continue-btn" onclick="flyBalloons()">Fly the Balloons</button>
+    </section>
+
+    <!-- step 4: cake + wish -->
+    <section class="party-step" id="step-cake">
+      <div class="eyebrow">last step</div>
+      <h2 class="script" style="font-size: 2.4rem; color: var(--deep-rose);">Cut the Cake</h2>
+      <p class="cake-instruction">Close your eyes, make a wish, then blow out the candle.</p>
+
+      <div class="cake-scene">
+        <div class="glow" id="candle-glow"></div>
+        <div class="smoke-puff" id="candle-smoke"></div>
+        <div class="flame" id="candle-flame"></div>
+        <div class="candle"></div>
+        <div class="cake-body">
+          <div class="cake-tier-top">
+            <div class="sprinkle" style="background:#e35d78; left:20px; top:14px; transform:rotate(20deg);"></div>
+            <div class="sprinkle" style="background:#d9a86c; left:50px; top:20px; transform:rotate(-15deg);"></div>
+            <div class="sprinkle" style="background:#c98aa3; left:80px; top:12px; transform:rotate(10deg);"></div>
+          </div>
+          <div class="cake-tier-bottom">
+            <div class="sprinkle" style="background:#e35d78; left:30px; top:16px; transform:rotate(-10deg);"></div>
+            <div class="sprinkle" style="background:#d9a86c; left:70px; top:22px; transform:rotate(15deg);"></div>
+            <div class="sprinkle" style="background:#c98aa3; left:110px; top:14px; transform:rotate(-20deg);"></div>
+            <div class="sprinkle" style="background:#e35d78; left:150px; top:24px; transform:rotate(8deg);"></div>
+          </div>
         </div>
       </div>
-    </div>
 
-    <button id="blow-btn" onclick="blowCandle()">🕯️ Blow the candle</button>
+      <button id="blow-btn" onclick="blowCandle()">🕯️ Blow the candle</button>
 
-    <div id="wish-made">
-      <div class="script">Wish made 💫</div>
-      <p style="color: var(--plum-soft); font-size: .95rem;">Whatever you wished for, I hope it finds you.</p>
-    </div>
+      <div id="wish-made">
+        <div class="script">Wish made 💫</div>
+        <p style="color: var(--plum-soft); font-size: .95rem;">Whatever you wished for, I hope it finds you.</p>
+      </div>
 
-    <button class="continue-btn" onclick="goToInterface('interface-birthday')">Continue →</button>
-  </section>
+      <div class="flower-burst" id="flower-burst"></div>
+    </section>
+
+    <!-- persistent decorations + balloon flight layer, sit above all steps -->
+    <div class="banner-strip" id="banner-strip"></div>
+    <div class="balloon-stage" id="balloon-stage"></div>
+
   </div>
 
   <!-- ============ INTERFACE 3: BIRTHDAY MESSAGE + PHOTOS ============ -->
@@ -679,12 +866,11 @@
     <div class="eyebrow reveal-item in-view">you made it in 💗</div>
     <h1 class="name-display script reveal-item in-view">Helloo Birthday girll !!</h1>
     <p class="reveal-item in-view">
-      Happy 20th Birthday, Shambhavi. It is genuinely hard to believe
-      you're entering into 20's. No matter how much time passes, a part 
-      of me will always see you as that cute 8th-grade girl with baby hair.
-      I am so proud of you and everything you're becoming. Have the most 
-      beautiful day, Rock it! You deserve the world. Always give your best
-      and you are so special to me, Take care!
+      Wish you a very very happie happie happie birthday shampoooo.
+      I genuinely wished to celebrate your birthday with you.
+      Seriously, I couldn't believe that u are 20 now for me you
+      are that 8th class cute girl with babyhair shambhavii.
+      And this year is really going to be yours for sure, Rock it!
     </p>
     <div class="scroll-cue reveal-item in-view">↓</div>
   </section>
@@ -779,7 +965,7 @@
     if(input.value.trim() === CORRECT_PASSWORD){
       launchConfetti();
       document.getElementById('lock-screen').classList.add('unlocked');
-      document.getElementById('interface-wish').classList.add('active');
+      document.getElementById('interface-party').classList.add('active');
       setTimeout(() => {
         document.getElementById('lock-screen').style.display = 'none';
       }, 1000);
@@ -799,6 +985,9 @@
   // ---------- interface navigation ----------
   // Switches between the 4 full-screen "pages": lock (handled separately),
   // wish, birthday message + photos, and video clips.
+  // ---------- interface navigation ----------
+  // Switches between the 4 full-screen "pages": lock (handled separately),
+  // party (lights/music/decorate/balloons/cake), birthday message + photos, and video clips.
   function goToInterface(targetId){
     document.querySelectorAll('.interface').forEach(el => {
       el.classList.remove('active');
@@ -806,7 +995,148 @@
     const target = document.getElementById(targetId);
     target.classList.add('active');
     window.scrollTo({ top: 0, behavior: 'instant' });
+    if(targetId === 'interface-birthday'){
+      stopPartyMusic();
+    }
   }
+
+  // switches between the steps inside the party interface
+  function goToStep(targetId){
+    document.querySelectorAll('.party-step').forEach(el => {
+      el.classList.remove('active');
+    });
+    document.getElementById(targetId).classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }
+
+  // ---------- step 0: lights on ----------
+  function turnLightsOn(){
+    document.getElementById('lights-overlay').classList.add('off');
+  }
+
+  // ---------- step 1: play music ----------
+  // "Happy Birthday to You" is in the public domain in the US
+  // (confirmed by court ruling in 2015-2016), so the classic melody
+  // is used here directly, looping until the birthday message page loads.
+  let partySynth, partyPart;
+  async function playBirthdayTune(){
+    const btn = document.getElementById('music-btn');
+    const emoji = document.getElementById('music-emoji');
+    if(btn.disabled) return;
+    btn.disabled = true;
+    emoji.textContent = '🎶';
+
+    const lyricEl = document.getElementById('music-lyric');
+    if(lyricEl) lyricEl.textContent = 'Happy Birthday to You 🎉';
+
+    await Tone.start();
+    if(!partySynth){
+      partySynth = new Tone.PolySynth(Tone.Synth, {
+        oscillator: { type: 'triangle' },
+        envelope: { attack: 0.02, decay: 0.15, sustain: 0.25, release: 0.5 }
+      }).toDestination();
+      partySynth.volume.value = -8;
+    }
+
+    // classic "Happy Birthday to You" melody, in C major
+    const events = [
+      [0.00, 'C4', 0.30], [0.35, 'C4', 0.30], [0.70, 'D4', 0.60],
+      [1.40, 'C4', 0.60], [2.10, 'F4', 0.60], [2.80, 'E4', 1.20],
+
+      [4.20, 'C4', 0.30], [4.55, 'C4', 0.30], [4.90, 'D4', 0.60],
+      [5.60, 'C4', 0.60], [6.30, 'G4', 0.60], [7.00, 'F4', 1.20],
+
+      [8.40, 'C4', 0.30], [8.75, 'C4', 0.30], [9.10, 'C5', 0.60],
+      [9.80, 'A4', 0.60], [10.50, 'F4', 0.60], [11.20, 'E4', 0.60], [11.90, 'D4', 1.20],
+
+      [13.30, 'Bb4', 0.30], [13.65, 'Bb4', 0.30], [14.00, 'A4', 0.60],
+      [14.70, 'F4', 0.60], [15.40, 'G4', 0.60], [16.10, 'F4', 1.30]
+    ];
+
+    if(partyPart) partyPart.dispose();
+    partyPart = new Tone.Part((time, note) => {
+      partySynth.triggerAttackRelease(note.pitch, note.dur, time);
+    }, events.map(([t, pitch, dur]) => [t, { pitch, dur }]));
+    partyPart.loop = true;
+    partyPart.loopEnd = 17.6;
+    partyPart.start(0);
+    Tone.Transport.start();
+
+    setTimeout(() => {
+      goToStep('step-decorate');
+    }, 2200);
+  }
+
+  // stops the party tune (called once the birthday message page loads)
+  function stopPartyMusic(){
+    if(partyPart){
+      partyPart.stop();
+      partyPart.dispose();
+      partyPart = null;
+    }
+    Tone.Transport.stop();
+  }
+
+
+  // ---------- step 2: decorate ----------
+  function decorateParty(){
+    const letters = ['H','A','P','P','Y',' ','B','I','R','T','H','D','A','Y'];
+    const strip = document.getElementById('banner-strip');
+    strip.innerHTML = '';
+    letters.forEach((ch, i) => {
+      const flag = document.createElement('div');
+      flag.className = 'banner-flag';
+      flag.textContent = ch === ' ' ? '' : ch;
+      if(ch === ' '){ flag.style.background = 'transparent'; flag.style.clipPath = 'none'; flag.style.width = '10px'; }
+      strip.appendChild(flag);
+      setTimeout(() => flag.classList.add('show'), i * 90);
+    });
+
+    setTimeout(() => {
+      goToStep('step-balloons');
+    }, letters.length * 90 + 900);
+  }
+
+  // ---------- step 3: fly balloons ----------
+  function flyBalloons(){
+    const stage = document.getElementById('balloon-stage');
+    stage.innerHTML = '';
+    const count = 16;
+    const palette = [
+      ['#ff9fb6','#e35d78'],
+      ['#ffd68a','#e8a94a'],
+      ['#c9a6ff','#8f63d9'],
+      ['#9fd8ff','#4fa6d9'],
+      ['#a8f0c6','#4bb885'],
+      ['#ffb3d9','#d9598f']
+    ];
+    for(let i=0;i<count;i++){
+      const b = document.createElement('div');
+      b.className = 'balloon';
+      const colors = palette[Math.floor(Math.random()*palette.length)];
+      b.style.setProperty('--b1', colors[0]);
+      b.style.setProperty('--b2', colors[1]);
+      b.style.left = (5 + Math.random()*90) + 'vw';
+      b.style.setProperty('--sway', (Math.random()*90 - 45) + 'px');
+
+      const size = 0.75 + Math.random()*0.6;
+      b.style.transform = `scale(${size})`;
+      b.style.transformOrigin = 'bottom center';
+
+      b.innerHTML = '<div class="balloon-body"></div><div class="balloon-knot"></div><div class="balloon-string"></div>';
+
+      b.style.animationDuration = (5 + Math.random()*3) + 's';
+      b.style.animationDelay = (Math.random()*1.4) + 's';
+      stage.appendChild(b);
+      requestAnimationFrame(() => b.classList.add('launch'));
+      setTimeout(() => b.remove(), 9500);
+    }
+
+    setTimeout(() => {
+      goToStep('step-cake');
+    }, 3600);
+  }
+
 
   // ---------- make a wish / candle blow ----------
   function blowCandle(){
@@ -827,7 +1157,52 @@
 
     setTimeout(() => {
       wishMsg.classList.add('show');
+      spawnFlowers();
     }, 500);
+  }
+
+  // grows a single flower at the center of the screen, then bursts it
+  // into a bunch of flowers, then auto-advances to the next interface
+  function spawnFlowers(){
+    const container = document.getElementById('flower-burst');
+
+    const seed = document.createElement('div');
+    seed.className = 'flower-seed bloom';
+    seed.textContent = '🌸';
+    container.appendChild(seed);
+
+    setTimeout(() => {
+      const emojis = ['🌸','🌷','🌼','🌺','💐'];
+      for(let i=0;i<26;i++){
+        const f = document.createElement('div');
+        f.className = 'flower-petal';
+        f.textContent = emojis[Math.floor(Math.random()*emojis.length)];
+        f.style.fontSize = (16 + Math.random()*16) + 'px';
+        container.appendChild(f);
+
+        const angle = Math.random()*2*Math.PI;
+        const distance = 110 + Math.random()*190;
+        const dx = Math.cos(angle)*distance;
+        const dy = Math.sin(angle)*distance;
+        f.style.transition = `transform ${1 + Math.random()*0.7}s cubic-bezier(.2,.7,.3,1), opacity 1.4s ease`;
+
+        requestAnimationFrame(() => {
+          f.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px)) rotate(${Math.random()*360}deg)`;
+          f.style.opacity = '0';
+        });
+
+        setTimeout(() => f.remove(), 1900);
+      }
+
+      seed.style.transition = 'opacity .5s ease';
+      seed.style.opacity = '0';
+    }, 650);
+
+    // auto-continue to the birthday message interface once the
+    // flowers have finished blooming and scattering
+    setTimeout(() => {
+      goToInterface('interface-birthday');
+    }, 2600);
   }
 
   function launchConfetti(){
@@ -861,6 +1236,7 @@
   }, { threshold: 0.15 });
   revealItems.forEach(item => observer.observe(item));
 </script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
 
 </body>
 </html>
