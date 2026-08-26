@@ -740,6 +740,16 @@ body {
       height: auto;
     }
   }
+
+
+  /* ---- content-protection deterrents ---- */
+  html, body, img, video { -webkit-user-select:none; user-select:none; -webkit-touch-callout:none; }
+  img, video { -webkit-user-drag:none; user-drag:none; }
+  @media print {
+    body { display:none !important; }
+  }
+
+  body.capture-hidden { visibility:hidden !important; }
 </style>
 </head>
 <body>
@@ -918,21 +928,13 @@ body {
   <section id="songs">
     <div class="eyebrow reveal-item">for your ears only</div>
     <h2 class="reveal-item" style="font-size:2rem; color:var(--deep-rose); margin-bottom:14px;">songs I sang for you</h2>
-    <p class="songs-intro reveal-item">A few clips are coming soon — this space is reserved for them.</p>
+    <p class="songs-intro reveal-item">Just one song, only for you. 💗</p>
     <div class="video-grid">
       <div class="video-card reveal-item">
         <div class="video-frame">
-          <div class="play-icon">🎬</div>
-          <div class="placeholder-label">clip coming soon</div>
+          <video controls controlsList="nodownload noplaybackrate" disablePictureInPicture playsinline preload="metadata" src="sham.mp4"></video>
         </div>
-        <div class="video-title">song one 🎶</div>
-      </div>
-      <div class="video-card reveal-item">
-        <div class="video-frame">
-          <div class="play-icon">🎬</div>
-          <div class="placeholder-label">clip coming soon</div>
-        </div>
-        <div class="video-title">song two 🎶</div>
+        <div class="video-title">for your ears only 🎶</div>
       </div>
     </div>
   </section>
@@ -1207,6 +1209,28 @@ body {
     });
   }, { threshold: 0.15 });
   revealItems.forEach(item => observer.observe(item));
+
+  // Content-protection deterrents. Browsers cannot provide a true
+  // "no screenshot/no screen recording" guarantee; OS-level capture
+  // controls are outside a webpage's control.
+  document.addEventListener('contextmenu', e => e.preventDefault());
+  document.addEventListener('dragstart', e => e.preventDefault());
+  document.addEventListener('selectstart', e => e.preventDefault());
+  document.addEventListener('keydown', e => {
+    const k = e.key.toLowerCase();
+    if ((e.ctrlKey || e.metaKey) && ['s','u','p','c','x'].includes(k)) e.preventDefault();
+    if (e.key === 'PrintScreen') {
+      e.preventDefault();
+      document.body.style.visibility = 'hidden';
+      setTimeout(() => document.body.style.visibility = '', 1200);
+    }
+  });
+  document.addEventListener('visibilitychange', () => {
+    // Hide the page when it leaves the foreground (helps against some
+    // capture workflows, but cannot defeat OS/browser recording tools).
+    if (document.hidden) document.body.classList.add('capture-hidden');
+    else document.body.classList.remove('capture-hidden');
+  });
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
 
